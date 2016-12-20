@@ -1,0 +1,40 @@
+runs="1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20" 
+queueSizes="1 2 5 10 20 50 100 150 200"
+loads="1 5 10 15 20 25 30 35 40 50 60"
+queueTimers="1 5 10 15 20 25 50"
+pktSizes="0 146 646 1446"
+
+cat /workspace/ns-3/ns-3.14.1/scratch/scenario_template.cc |
+ 
+for run in $runs ; 
+do 
+	sed "s/(\"RngRun\",IntegerValue([0-9]*))/(\"RngRun\",IntegerValue(${run}))/" </workspace/ns-3/ns-3.14.1/scratch/MyScenario2.cc >/workspace/ns-3/ns-3.14.1/scratch/MyScenario2-run.cc ; 
+
+	for queueSize in $queueSizes ;
+	do 
+		sed "s/(\"MaxQueueLength\", UintegerValue([0-9]*))/(\"MaxQueueLength\", UintegerValue(${queueSize}))/" </workspace/ns-3/ns-3.14.1/scratch/MyScenario2-run.cc >/workspace/ns-3/ns-3.14.1/scratch/MyScenario2-queueSize.cc ; 
+
+		for interarrival in $interarrivals;
+		do 
+			sed "s/(\"Delay\",RandomVariableValue(ExponentialVariable([0]\.[0-9]*)))/(\"Delay\",RandomVariableValue(ExponentialVariable(${interarrival})))/" </workspace/ns-3/ns-3.14.1/scratch/MyScenario2-queueSize.cc >/workspace/ns-3/ns-3.14.1/scratch/MyScenario2-interarrival.cc ;
+
+			for queueTimer in $queueTimers;
+			do 
+				sed "s/(\"QueueTimer\", TimeValue(MilliSeconds([0-9]*)))/(\"QueueTimer\", TimeValue(MilliSeconds(${queueTimer})))/" </workspace/ns-3/ns-3.14.1/scratch/MyScenario2-interarrival.cc >/workspace/ns-3/ns-3.14.1/scratch/MyScenario2-queueTimer.cc ;
+				
+
+				for pktSize in $pktSizes;
+				do
+					sed -e "s/\"PacketSize\",RandomVariableValue(ConstantVariable([0-9]*))/\"PacketSize\",RandomVariableValue(ConstantVariable(${pktSize}))/"\
+					    -e "s/queue[0-9]*\/switched-ethernet-MyScenario2-[0-9]*-[0]\.[0-9]*-[0-9]*-[0]\.[0-9]*-[0-9]*-[0-9]*-[0-9]*-exp.tr/queue${queueSize}\/switched-ethernet-MyScenario2-${queueSize}-${interarrival}-${pktSize}-${interarrival}-${pktSize}-${queueTimer}-${run}-exp.tr/" \
+					    -e "s/queue[0-9]*\/switched-ethernet-My2-[0-9]*-[0]\.[0-9]*-[0-9]*-[0]\.[0-9]*-[0-9]*-[0-9]*-[0-9]*-exp/queue${queueSize}\/switched-ethernet-My2-${queueSize}-${interarrival}-${pktSize}-${interarrival}-${pktSize}-${queueTimer}-${run}-exp/" </workspace/ns-3/ns-3.14.1/scratch/MyScenario2-queueTimer.cc >/workspace/ns-3/ns-3.14.1/scratch/MyScenario2-${queueSize}-${run}-${interarrival}-${queueTimer}-${pktSize}.cc ;
+
+					sudo ./waf --run "MyScenario2-${queueSize}-${run}-${interarrival}-${queueTimer}-${pktSize}" | tail -1 >> /media/My\ Passport/EEE/simulations/EEE-${queueSize}-${interarrival}-${pktSize}-${interarrival}-${pktSize}-${queueTimer};
+
+					sudo rm /workspace/ns-3/ns-3.14.1/scratch/MyScenario2-${queueSize}-${run}-${interarrival}-${queueTimer}-${pktSize}.cc;
+				done
+			done
+		done
+	done
+done
+sudo rm /workspace/ns-3/ns-3.14.1/scratch/MyScenario2-*
