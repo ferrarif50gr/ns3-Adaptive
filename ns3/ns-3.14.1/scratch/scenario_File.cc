@@ -2,14 +2,12 @@
 #include <fstream>
 #include <string>
 #include <cassert>
-//#include <stdio.h>
 #include "ns3/core-module.h"
 #include "ns3/network-module.h"
 #include "ns3/switched-ethernet-module.h"
 #include "ns3/applications-module.h"
 #include "ns3/internet-module.h"
 #include "ns3/pcap-file.h"
-//#include "ns3/trace-generator.h"
 
 using namespace std;
 using namespace ns3;
@@ -17,9 +15,6 @@ using namespace ns3;
 NS_LOG_COMPONENT_DEFINE ("SwitchedEthernetPacketSocketExample");
 
 std::ofstream g_os;
-//std::ifstream trace;
-//PcapFile g_is;
-//FILE* g_is; 
 
 static void
 SinkRx (std::string path, Ptr<const Packet> p, const Address &address)
@@ -28,16 +23,6 @@ SinkRx (std::string path, Ptr<const Packet> p, const Address &address)
   g_os << p->GetSize () << std::endl;
 }
 
-/*static void
-SinkTx (std::string path, Ptr<const Packet> p, const Address &address)
-{
- uint8_t expected[1600];
- uint32_t tsSec, tsUsec, inclLen, origLen, readLen;
- g_is.Read (expected, sizeof(expected), tsSec, tsUsec, inclLen, origLen, readLen);
- NS_LOG_UNCOND("File Opened");
-//  g_is.Read
-}
-*/
 int
 main (int argc, char *argv[])
 {
@@ -50,50 +35,6 @@ main (int argc, char *argv[])
   CommandLine cmd;
   cmd.Parse (argc, argv);
 
-//  g_os.open ("switched-ethernet-packet-socket-sink.tr",std::ios_base::binary | std::ios_base::out);
-//  trace.open ("./scratch/trace2", std::ios::in);
-
-//  uint8_t expected[1600];
-//  uint32_t tsSec, tsUsec, inclLen, origLen, readLen;
-//  g_is.Read (expected, sizeof(expected), tsSec, tsUsec, inclLen, origLen, readLen);
-
-
- //cout<< "let's see" << " "<<  expected << " "<< tsSec << " "<< tsUsec << " "<< inclLen <<  " "<< origLen <<  " "<< readLen << endl;  
-
-/*double ttt=2.23; 
-int sss=1;
-char* line = new char[100000];
-
-for(int j=0; j<3; j++)
-{
-	trace.getline(line,99999,'\n');
-
-	cout << "before " << line << endl;
-	sscanf(line,"%lf %d",&ttt, &sss);
-	tsSec = uint32_t(int(ttt));
-	tsUsec = uint32_t(int(1000000000*(ttt-int(ttt))));
-	inclLen = uint32_t(sss);
-	origLen = inclLen;
-	readLen = inclLen;
-
-	cout << "reading from file" << endl; 
-	cout << ttt << " " << sss << endl;
-	cout << tsSec << endl;
-	cout << tsUsec << endl;
-	cout << inclLen << endl;
-	cout << origLen << endl;
-	cout << readLen << endl;
-
-	cin.get();
-}
-*/
- // cout << g_is.Eof() << g_is.Fail() << endl;
-
- // g_is.Read (expected, sizeof(expected), tsSec, tsUsec, inclLen, origLen, readLen);
-//  g_is.Read (expected, sizeof(expected), tsSec, tsUsec, inclLen, origLen, readLen);
-//cout<< "let's see" << " "<<  expected << " "<< tsSec << " "<< tsUsec << " "<< inclLen <<  " "<< origLen <<  " "<< readLen << endl;  
-
-//NS_LOG_UNCONs");
   
   NS_LOG_INFO ("Create nodes.");
 
@@ -145,8 +86,6 @@ for(int j=0; j<3; j++)
   sinkApp.Start (startTime);
   sinkApp.Stop (stopTime);
 
-//  uint16_t port2 = 10;
-//  Address sinkLocalAddress2 (InetSocketAddress (Ipv4Address::GetAny (), port2));
   PacketSinkHelper sinkHelper2 ("ns3::UdpSocketFactory", sinkLocalAddress);
   ApplicationContainer sinkApp2 = sinkHelper2.Install (nodes.Get(0));
   sinkApp2.Start (startTime);
@@ -154,7 +93,7 @@ for(int j=0; j<3; j++)
 
 //FromDouble
   TraceAppHelper client = TraceAppHelper ("ns3::UdpSocketFactory", i.GetAddress (1));
-  client.SetAttribute ("TraceFile", StringValue("/home/angelos/workspace/InputFiles/current_trace2_0"));
+  client.SetAttribute ("TraceFile", StringValue("/home/angelos/ns3-AdaptiveTimer/current_trace2_0"));
   ApplicationContainer clientApps;
   AddressValue remoteAddress(InetSocketAddress (i.GetAddress (1), port));
   client.SetAttribute ("Remote", remoteAddress);
@@ -163,7 +102,7 @@ for(int j=0; j<3; j++)
   clientApps.Stop (stopTime);
 
   TraceAppHelper client2 = TraceAppHelper ("ns3::UdpSocketFactory", i.GetAddress (0));
-  client2.SetAttribute ("TraceFile", StringValue("/home/angelos/workspace/InputFiles/current_trace2_1"));
+  client2.SetAttribute ("TraceFile", StringValue("/home/angelos/ns3-AdaptiveTimer/current_trace2_1"));
   client2.SetAttribute ("MaxPacketSize", UintegerValue(1460));
   ApplicationContainer clientApps2;
   AddressValue remoteAddress2(InetSocketAddress (i.GetAddress (0), port));
@@ -171,7 +110,6 @@ for(int j=0; j<3; j++)
   clientApps2 = client2.Install (nodes.Get(1));
   clientApps2.Start (startTime);
   clientApps2.Stop (stopTime);
-  //Config::Connect ("/NodeList/*/ApplicationList/*/$ns3::PacketSink/Tx", MakeCallback (&SinkTx));
 
   // While the below trace sink is hooked to all nodes (the wildcard "*")
   // only one packet sink (on node 0) is actually added above, so
@@ -195,12 +133,6 @@ for(int j=0; j<3; j++)
   switchedEth.EnableAsciiAll(stream);
 //  switchedEth.EnablePcapAll ("scenarioFile", false);
 
-/*  std::ofstream ascii;
-  ascii.open ("my2-helper.tr");
-  SwitchedEthernetHelper::EnableAsciiAll (ascii);
-  SwitchedEthernetHelper::EnablePcapAll ("my2-helper");
-  //SwitchedEthernetHelper::EnablePcapAll ("wsn3-helper");
-*/
   NS_LOG_INFO ("Run Simulation.");
   Simulator::Stop(stopTime + Seconds(1.0));
   Simulator::Run ();
@@ -208,6 +140,5 @@ for(int j=0; j<3; j++)
   NS_LOG_INFO ("Done.");
 
   g_os.close ();
- // trace.close ();
   return 0;
 }
